@@ -14,25 +14,24 @@ const GridContent = () => {
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9].map((d, i) => (
         <div key={i}>
           <GridItem />
+          {openModal && (
+            <div className="z-20 bg-black absolute top-0 right-0 left-0 bottom-0 bg-opacity-20 backdrop-blur-lg flex justify-center items-center cursor-default">
+              <div className="w-[70%] bg-white px-10 py-5 rounded shadow">
+                <div className="w-full flex justify-between">
+                  <h1 className="font-medium text-xl">Case No: #101 </h1>
+                  <button>
+                    <XCircleIcon
+                      className="w-7 h-7 fill-red-400"
+                      onClick={() => setOpenModal(false)}
+                    />
+                  </button>
+                </div>
+                <TableContent />
+              </div>
+            </div>
+          )}
         </div>
       ))}
-
-      {openModal && (
-        <div className="z-20 bg-black absolute top-0 right-0 left-0 bottom-0 bg-opacity-20 backdrop-blur-lg flex justify-center items-center cursor-default">
-          <div className="w-[70%] bg-white px-10 py-5 rounded shadow">
-            <div className="w-full flex justify-between">
-              <h1 className="font-medium text-xl">Case No: #101 </h1>
-              <button>
-                <XCircleIcon
-                  className="w-7 h-7 fill-red-400"
-                  onClick={() => setOpenModal(false)}
-                />
-              </button>
-            </div>
-            <TableContent />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

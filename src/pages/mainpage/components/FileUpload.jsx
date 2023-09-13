@@ -1,75 +1,52 @@
-import React, { useCallback, forwardRef, useState } from "react";
+import React, { useCallback, forwardRef, useState, useRef } from "react";
 import {
   DocumentArrowUpIcon,
-  DocumentCheckIcon,
   DocumentPlusIcon,
   XCircleIcon,
 } from "@heroicons/react/24/solid";
-import Uploady from "@rpldy/uploady";
-import UploadDropZone from "@rpldy/upload-drop-zone";
-import { asUploadButton } from "@rpldy/upload-button";
+import { BsSoundwave } from "react-icons/bs";
+import { MdOutlineAudioFile } from "react-icons/md";
 
 import CustomSelect from "./CustomSelect";
 const FileUpload = () => {
   const [showModal, setShowModal] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  // eslint-disable-next-line react/display-name
-  const MyClickableDropZone = forwardRef((props, ref) => {
-    const { onClick, ...buttonProps } = props;
+  const [file, setFile] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const fileInputRef = useRef(null);
 
-    const onZoneClick = useCallback(
-      (e) => {
-        if (onClick) {
-          onClick(e);
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+
+    if (selectedFile) {
+      if (
+        selectedFile.type.startsWith("audio/") &&
+        selectedFile.size <= 10 * 1024 * 1024
+      ) {
+        setFile(selectedFile);
+        setErrorMessage("");
+      } else {
+        setFile(null);
+        if (!selectedFile.type.startsWith("audio/")) {
+          setErrorMessage("Invalid file type. Please select an audio file.");
+        } else if (selectedFile.size > 10 * 1024 * 1024) {
+          setErrorMessage(
+            "File size exceeds 10MB limit. Please select a smaller audio file."
+          );
         }
-      },
-      [onClick]
-    );
-
-    return (
-      <UploadDropZone
-        {...buttonProps}
-        ref={ref}
-        onDragOverClassName="active"
-        extraProps={{ onClick: onZoneClick }}>
-        <div className="flex flex-col justify-center items-center">
-          {selectedFile ? (
-            <div className="w-20">
-              <DocumentCheckIcon className="W-20" />
-              {selectedFile.name}
-            </div>
-          ) : (
-            <>
-              <DocumentArrowUpIcon className="w-20" />
-              <label>Drop audio file or click here</label>
-              <label className="text-sky-600 text-xs">
-                *.mp3 *.flac *.ogg *.m4a
-              </label>
-            </>
-          )}
-        </div>
-      </UploadDropZone>
-    );
-  });
-
-  const DropZoneButton = asUploadButton(MyClickableDropZone);
-  const filterByAudio = useCallback((file) => {
-    // Filter out files larger than 5MB
-    if (file.size > 5242880) {
-      return false;
+      }
     }
+  };
 
-    // Check if the file type is audio
-    const allowedAudioTypes = ["audio/mpeg", "audio/wav", "audio/mp3"];
-    return allowedAudioTypes.includes(file.type);
-  }, []);
-
-  const onFileSelect = useCallback((e) => {
-    const file = e.target.files[0];
+  const handleUpload = () => {
+    // Handle the file upload logic here
     if (file) {
-      setSelectedFile(file);
+      // Perform the upload action or display a success message
+      alert("File uploaded successfully!");
+    } else {
+      // Handle the case where no valid file is selected
+      alert("Please select a valid audio file first.");
     }
-  }, []);
+  };
 
   return (
     <div className="w-full col-span-12 h-full border-b-gray-200 border-b px-10 py-10 my-0">
@@ -81,9 +58,6 @@ const FileUpload = () => {
             onClick={() => setShowModal(!showModal)}>
             Upload file
           </button>
-          {/* <button className="btn btn-md bg-400 text-white border-0">
-          Upload File
-        </button> */}
         </div>
       </div>
 
@@ -111,22 +85,52 @@ const FileUpload = () => {
               </div>
             </div>
 
-            <div className="mt-5 px-5 ">
-              <div className="w-full h-44 flex justify-center bg-gray-50 items-center rounded">
-                <Uploady
-                  accept="*.mp3"
-                  debug
-                  multiple={false}>
-                  <DropZoneButton
-                    onClick={onFileSelect}
-                    fileFilter={filterByAudio}
-                  />
-                </Uploady>
-              </div>
+            {/* handle file upload */}
+
+            <div className="w-full h-56 flex justify-center bg-gray-50 items-center rounded flex-col mt-5">
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+                ref={fileInputRef}
+              />
+
+              {file && (
+                <div className="w-full flex justify-center flex-col items-center py-3">
+                  <BsSoundwave className="w-20 h-20" />
+
+                  <p>Selected File: {file.name}</p>
+                  <p>File Size: {Math.round(file.size / 1024 / 1024)} MB</p>
+                </div>
+              )}
+              {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+
+              {file === null ? (
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  className="w-full  flex justify-center flex-col items-center py-3 h-full">
+                  <MdOutlineAudioFile className="w-20 h-20" />
+                  Select Audio File
+                  <label className="text-sky-600 text-xs block">
+                    *.mp3 *.flac *.ogg *.m4a
+                  </label>
+                </button>
+              ) : (
+                <button
+                  className="flex w-full justify-center pt-4"
+                  onClick={() => fileInputRef.current.click()}>
+                  <MdOutlineAudioFile className="w-5 h-5" />
+                  Change File
+                </button>
+              )}
             </div>
 
             <div>
-              <button className="btn bg-green-400 text-white  border-0 w-full mt-5">
+              <button
+                className="btn bg-green-400 text-white  border-0 w-full mt-5 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:text-white"
+                onClick={handleUpload}
+                disabled={!file ? true : false}>
                 Transcribe file
               </button>
             </div>
